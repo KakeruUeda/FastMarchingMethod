@@ -2,6 +2,7 @@
 #include <vector>
 using namespace std;
 
+
 enum lambda_type{
     fix = 1,
     near = 2,
@@ -10,15 +11,24 @@ enum lambda_type{
 
 class FMM{
     public:
-    int nx, ny, goal_i, goal_j;
+    int nx, ny, goal_i, goal_j, tmp, size;
     double Lx, Ly;
     double dx, dy;
-
+    double f;
+    double T_H, T_V;
+    static const int N;
+    vector<vector<int>> H;
     vector<vector<vector<double>>> x;
+    //vector<vector<double>> f;
     vector<vector<double>> T;
     vector<vector<int>> lambda;
 
     void DefineGrid();
-    tuple<double, int, int> InitGrid();
-    void FixGrid(int & _i, int & _j, vector<vector<int>> _lambda);
+    void InitGrid();
+    void FixGrid(int & _i, int & _j, vector<vector<int>>& _lambda, vector<vector<double>>& _T, vector<vector<int>>& _H);
+    void UpdateGrid(int _i, int _j);
+    void FastMarchingMethod();
+    //void AddHeap(vector<int> &H, int size);
+    void UpHeap(vector<vector<int>> &H, int _i, int _j);
+    void DeleteHeap(vector<vector<int>>& H, int size);
 };
