@@ -7,7 +7,7 @@ void FMM::DefineGrid(){
     Lx = 1e0;
     Ly = 1e0;
     goal_i = 4;
-    goal_j = 4;
+    goal_j = 2;
 
     dx=Lx/nx;
     dy=Ly/ny;
@@ -18,7 +18,9 @@ void FMM::DefineGrid(){
 
     for(int i=0; i<1000; i++){
         H.emplace_back();
+        H_tmp.emplace_back();
     }
+;
 
     x.resize(ny+1, vector<vector<double>>(nx+1, vector<double>(2, 0)));
     T.resize(ny+1, vector<double>(nx+1, 0));
@@ -30,51 +32,110 @@ void FMM::DefineGrid(){
             x.at(i).at(j).at(1) = i*dx;
         }
     }
+
 }
 
 void FMM::FastMarchingMethod(){
+   // cout << "1" << endl;
+   int loop = 0;
     InitGrid();
     bool is_empty_H = false;
     while(!is_empty_H){
-        int i = H.at(0).at(1);
-        int j = H.at(0).at(2);
+        cout << "loop = " << loop << endl;
         DeleteHeap(H, size);
+        int i = H.at(size).at(1);
+        int j = H.at(size).at(2);
+         cout << "i = " << i << " j = " << j << endl;
         FixGrid(i, j, lambda, T, H);
         if(size==0) is_empty_H = true;
+        loop++;
+        //if(loop == 3) exit(1);
     }
+    // cout << "3" << endl;
 }
 
 void FMM::UpdateGrid(int _i, int _j){
-    T_H = min(T.at(_i-1).at(_j), T.at(_i+1).at(_j));
-    T_V = min(T.at(_i).at(_j-1), T.at(_i).at(_j+1));
+    //cout << "update _i = " << _i << endl;
+    //cout << "update _j = " << _j  << endl;
+    //cout << "2_1_1_1" << endl;
+    if(_i == nx && _j != ny){
+        T_H = T.at(_i-1).at(_j);
+        T_V = min(T.at(_i).at(_j-1), T.at(_i).at(_j+1));
+    }else if(_j == ny && _i != nx){
+        T_H = min(T.at(_i-1).at(_j), T.at(_i+1).at(_j));
+        T_V = T.at(_i).at(_j-1);
+    }else if(_i == 0 && _j != 0){
+        T_H = T.at(_i+1).at(_j);
+        T_V = min(T.at(_i).at(_j-1), T.at(_i).at(_j+1));   
+    }else if(_j == 0 && _i != 0){
+        T_H = min(T.at(_i-1).at(_j), T.at(_i+1).at(_j));
+        T_V = T.at(_i).at(_j+1);
+    }else if(_i == nx && _j == ny){  
+        T_H = T.at(_i-1).at(_j);
+        T_V = T.at(_i).at(_j-1);
+    }else if(_i == 0 && _j == 0){
+        T_H = T.at(_i+1).at(_j);
+        T_V = T.at(_i).at(_j+1);
+    }else{
+        T_H = min(T.at(_i-1).at(_j), T.at(_i+1).at(_j));
+        T_V = min(T.at(_i).at(_j-1), T.at(_i).at(_j+1));   
+    }
 
+
+    //cout << "2_1_1_2" << endl;
     if( f > abs(T_H-T_V)){
         T.at(_i).at(_j) = (T_H+T_V+sqrt(2*pow(f, 2)-pow((T_H-T_V), 2)))/2;
     }else{
         T.at(_i).at(_j) = f + min(T_H, T_V);
     }
+    //cout << "2_1_1_3" << endl;
 }
 
-void FMM::FixGrid(int &_i, int &_j, vector<vector<int>>& _lambda, vector<vector<double>>& _T, vector<vector<int>>& _H){
+void FMM::FixGrid(int _i, int _j, vector<vector<int>>& _lambda, vector<vector<double>>& _T, vector<vector<int>>& _H){
     _lambda.at(_i).at(_j) = fix;
 
-    for(int i=_i-1; i<=_i+1; _i+2){
-        for(int j=_j-1; j<=_j+1; _j+2){
-            if( i != goal_i && j != goal_j && _lambda.at(i).at(j) != fix){
+    //cout << "2_1_00" << endl;
+    //cout << "_i = " << _i << "_j = " << _j << endl;
+    int step = 0;
+
+    for(int i=_i-1; i<=_i+1; i++){
+        for(int j=_j-1; j<=_j+1; j++){
+              //cout << "i = " << i << " j = " << j << " step = " << step << endl;
+            if(i == nx+1 || j == ny+1 || step == 0 || step == 2 || step == 4 || step == 6 || step == 8 || i < 0 || j < 0){
+                //cout << "skip" << endl;
+                step++;
+                continue;
+            }
+             //cout << "i = " << i << " j = " << j << " step = " << step << endl;
+
+            if( (i != goal_i || j != goal_j) && _lambda.at(i).at(j) != fix){
+                //cout << size << endl;
+               // cout << "i = " << i << " j = " << j << " lambda = " << _lambda.at(i).at(j) << endl;
+                //cout << "2_1_1" << endl;
                 UpdateGrid(i,j);
                 if(_lambda.at(i).at(j) == far){
                     _lambda.at(i).at(j) == near;
-                    H.at(tmp).push_back(tmp);
-                    H.at(tmp).push_back(i);
-                    H.at(tmp).push_back(j);
+                    //cout << "2_1_2" << endl;
+                    //cout << "tmp = " << tmp << "  i = " << i << "  j = " << j <<  endl;
+                    H.at(size).push_back(tmp);
+                    //cout << "2_1_3" << endl;
+                    H.at(size).push_back(i);
+                    //cout << "2_1_4" << endl;
+                    H.at(size).push_back(j);
+                    //cout << "2_1_5" << endl;
+                    //cout << "tmp = " << tmp <<  " H.at(size)のj = " << H.at(size).at(2) << endl;
                     tmp++;
                     size++;
                 }else{
+                    //cout << "2_1_6" << endl;
                     UpHeap(H,i,j);
+                  // cout << "2_1_7" << endl;
                 }
             }
+            step++;
         }
     }
+    //cout << "1_1_5" << endl;
 }
 
 void FMM::InitGrid(){
@@ -90,6 +151,7 @@ void FMM::InitGrid(){
             }
         }
     }
+    //cout << "1_1" << endl;
 
     for(int i=0; i<ny+1; i++){
         for(int j=0; j<nx+1; j++){
@@ -98,5 +160,6 @@ void FMM::InitGrid(){
             }
         }
     }
+    //cout << "1_2" << endl;
 }
 

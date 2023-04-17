@@ -36,24 +36,34 @@ void FMM::AddHeap(vector<int>& H, int size) {
         }
     }
 }*/
-void FMM::DeleteHeap(vector<vector<int>>& H, int size) {
+void FMM::DeleteHeap(vector<vector<int>>& H, int &size) {
     int left; 
     int right;
     int smaller; 
     int parent; 
-   
+       //cout << "前の葉のi座標は = " << H.at(size-1).at(1) <<  " 葉のj座標は = " << H.at(size-1).at(2) << endl;
     swap(H.at(0), H.at(size-1));
+
+    //cout << "size = " << size << endl;
+    //cout << "新しい根のi座標は = " << H.at(0).at(1) << " 根のj座標は = " << H.at(0).at(2) <<  endl;
+    //cout << "消された葉のi座標は = " << H.at(size-1).at(1) <<  " 葉のj座標は = " << H.at(size-1).at(2) << endl;
     
+    //H_tmp.at(tmp2).push_back(H.at(size-1).at(0));
+    //H_tmp.at(tmp2).push_back(H.at(size-1).at(1));
+    //H_tmp.at(tmp2).push_back(H.at(size-1).at(2));
+
+    //tmp2++;
+
     size--;
+    cout << size << endl;
     parent = 0;
     
     while (1) {
         left = getLeft(parent);
         right = getRight(parent);
-
-        /* 子ノードの大きい値を持つ方の位置を取得 */
+        //cout << "left = " << left  << " right = " << right << endl;
+ 
         if (left < size && right < size) {
-            /* 左右両方の子ノードが存在する場合は比較して確認 */
             if (H.at(left).at(0) > H.at(right).at(0)) {
                 smaller = right;
             } else {
@@ -71,6 +81,7 @@ void FMM::DeleteHeap(vector<vector<int>>& H, int size) {
         swap(H.at(smaller), H.at(parent));
 
         parent = smaller;
+        //cout << "parent = " << parent << endl;
     }
 }
 /*

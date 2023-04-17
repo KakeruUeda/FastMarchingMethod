@@ -11,13 +11,14 @@ enum lambda_type{
 
 class FMM{
     public:
-    int nx, ny, goal_i, goal_j, tmp, size;
+    int nx, ny, goal_i, goal_j, tmp, tmp2, size;
     double Lx, Ly;
     double dx, dy;
     double f;
     double T_H, T_V;
     static const int N;
     vector<vector<int>> H;
+    vector<vector<int>> H_tmp;
     vector<vector<vector<double>>> x;
     //vector<vector<double>> f;
     vector<vector<double>> T;
@@ -25,10 +26,10 @@ class FMM{
 
     void DefineGrid();
     void InitGrid();
-    void FixGrid(int & _i, int & _j, vector<vector<int>>& _lambda, vector<vector<double>>& _T, vector<vector<int>>& _H);
+    void FixGrid(int _i, int _j, vector<vector<int>>& _lambda, vector<vector<double>>& _T, vector<vector<int>>& _H);
     void UpdateGrid(int _i, int _j);
     void FastMarchingMethod();
     //void AddHeap(vector<int> &H, int size);
     void UpHeap(vector<vector<int>> &H, int _i, int _j);
-    void DeleteHeap(vector<vector<int>>& H, int size);
+    void DeleteHeap(vector<vector<int>>& H, int &size);
 };
