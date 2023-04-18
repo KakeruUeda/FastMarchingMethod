@@ -98,9 +98,12 @@ void makeHeap(int a[], int num) {
     }
 }*/
 
+
+
 void FMM::UpHeap(vector<vector<int>> &H, int _i, int _j){
     int parent;
     int target;
+
 
     auto it = find_if(
         begin(H), end(H),

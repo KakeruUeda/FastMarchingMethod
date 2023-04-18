@@ -6,8 +6,8 @@ void FMM::DefineGrid(){
     ny = 30;
     Lx = 1e0;
     Ly = 1e0;
-    goal_i = 10;
-    goal_j = 5;
+    //goal_i = 10;
+    //goal_j = 5;
 
     dx=Lx/nx;
     dy=Ly/ny;
@@ -20,11 +20,30 @@ void FMM::DefineGrid(){
     f = 1e0/v;
 
     for(int i=0; i<10000; i++){
-        H.emplace_back();
-        H_tmp.emplace_back();
+        //H.emplace_back();
+        //H_tmp.emplace_back();
     }
 
+    string str;
+    ifstream ifs("goal.dat");
+    int tmp6 = 0;
+   // vector<vector<double>> goal;
+    while(getline(ifs,str)){
+        istringstream ss(str); 
+        string tmp5;
+        vector<double> tmp_goal;
+        goal.emplace_back();
+        for(int j=0; j<2; j++){
+            getline(ss, tmp5, ' ');
+            goal.at(tmp6).push_back(stod(tmp5));
+        }
+        tmp6++;
+    }
+    //cout << "goal1のi" << goal.at(0).at(0) << "  goal1のj" << goal.at(0).at(1) << endl;
+    //cout << "goal2のi" << goal.at(1).at(0) << "  goal2のj" << goal.at(1).at(1) << endl;
+    //exit(1);
 
+    
     x.resize(numOfNode, vector<double>(2, 0));
     T.resize(ny+1, vector<double>(nx+1, 0));
     element.resize(numOfElm);
@@ -56,6 +75,43 @@ void FMM::DefineGrid(){
     }
     
 }
+
+bool FMM::IsGoal(vector<vector<int>> &goal,int _i, int _j){
+    
+    //cout << "is_goal_in" << endl;
+    //cout << "goal1のi" << goal.at(0).at(0) << "  goal1のj" << goal.at(0).at(1) << endl;
+    //cout << "goal2のi" << goal.at(1).at(0) << "  goal2のj" << goal.at(1).at(1) << endl;
+    //cout << _i << _j << endl;
+        
+    auto is = find_if(
+        begin(goal), end(goal),
+        [&_i, &_j](const auto& row) {
+            //cout << row.at(0) << endl;
+            //exit(1);
+            return row.at(0)  == _i && row.at(1) == _j;
+        }
+    );
+    if(is == end(goal)){
+      return false;
+    }else{
+      return true;
+    }
+    /*
+    cout << "hello" << endl;
+    cout << goal.size() << endl;
+
+    for(int i=0; i<goal.size(); i++){
+        if((_i == goal.at(i).at(0)) && (_j == goal.at(i).at(1)) ){
+            return true;
+        }
+    }
+    return false;
+    */
+}
+
+
+
+
 
 void FMM::FastMarchingMethod(){
    // cout << "1" << endl;
@@ -153,8 +209,9 @@ void FMM::FixGrid(int _i, int _j, vector<vector<int>>& _lambda, vector<vector<do
                 continue;
             }
             //cout << "i = " << i << " j = " << j << " step = " << step << endl;
+            bool is_goal = IsGoal(goal, i, j);
 
-            if( (i != goal_i || j != goal_j) && _lambda.at(i).at(j) != fix){
+            if( !is_goal && _lambda.at(i).at(j) != fix){
                 //cout << size << endl;
                 //cout << "i = " << i << " j = " << j << " lambda = " << _lambda.at(i).at(j) << endl;
                 //cout << "2_1_0" << endl;
@@ -164,7 +221,8 @@ void FMM::FixGrid(int _i, int _j, vector<vector<int>>& _lambda, vector<vector<do
                     _lambda.at(i).at(j) = near;
                    // cout << "i = " << i << " j = " << j << " lambda = " << _lambda.at(i).at(j) << endl;
                     //cout << "2_1_2" << endl;
-                    //cout << "tmp = " << tmp << "  i = " << i << "  j = " << j <<  endl;
+                    
+                    H.emplace_back();
                     H.at(size).push_back(tmp);
                     //cout << "2_1_3" << endl;
                     H.at(size).push_back(i);
@@ -191,7 +249,8 @@ void FMM::InitGrid(){
 
     for(int i=0; i<ny+1; i++){
         for(int j=0; j<nx+1; j++){
-            if(i == goal_i && j == goal_j){
+            bool is_goal2 = IsGoal(goal, i, j);
+            if(is_goal2){
                 T.at(i).at(j) = 0;
                 lambda.at(i).at(j) = fix;
             }else{

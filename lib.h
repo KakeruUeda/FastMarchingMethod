@@ -11,8 +11,6 @@ enum lambda_type{
 
 class ElementType{
     public:
-    int materialType;
-    int numOfGaussPoint;
     vector<int> node;
 };
 
@@ -32,6 +30,9 @@ class FMM{
     vector<ElementType> element;
     vector<vector<double>> T;
     vector<vector<int>> lambda;
+    vector<vector<int>> goal;
+
+    bool IsGoal(vector<vector<int>> &goal, int _i, int _j);
 
     void DefineGrid();
     void InitGrid();
@@ -39,8 +40,8 @@ class FMM{
     void UpdateGrid(int _i, int _j);
     void FastMarchingMethod();
     //void AddHeap(vector<int> &H, int size);
-    void UpHeap(vector<vector<int>> &H, int _i, int _j);
+    void UpHeap(vector<vector<int>>& H, int _i, int _j);
     void DeleteHeap(vector<vector<int>>& H, int &size);
 
-    void export_vtu(const std::string &file);
+    void export_vtu(const string &file);
 };
