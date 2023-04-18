@@ -9,18 +9,27 @@ enum lambda_type{
     far = 3, 
 };
 
+class ElementType{
+    public:
+    int materialType;
+    int numOfGaussPoint;
+    vector<int> node;
+};
+
 class FMM{
     public:
-    int nx, ny, goal_i, goal_j, tmp, tmp2, size;
+    int nx, ny, goal_i, goal_j, tmp, tmp2, size, numOfNode, numOfElm;
     double Lx, Ly;
     double dx, dy;
     double f;
     double T_H, T_V;
     static const int N;
     vector<vector<int>> H;
+    vector<double> T_1D;
     vector<vector<int>> H_tmp;
-    vector<vector<vector<double>>> x;
+    vector<vector<double>> x;
     //vector<vector<double>> f;
+    vector<ElementType> element;
     vector<vector<double>> T;
     vector<vector<int>> lambda;
 
@@ -32,4 +41,6 @@ class FMM{
     //void AddHeap(vector<int> &H, int size);
     void UpHeap(vector<vector<int>> &H, int _i, int _j);
     void DeleteHeap(vector<vector<int>>& H, int &size);
+
+    void export_vtu(const std::string &file);
 };

@@ -2,42 +2,64 @@
 using namespace std;
 void FMM::DefineGrid(){
 
-    nx = 6;
-    ny = 6;
+    nx = 30;
+    ny = 30;
     Lx = 1e0;
     Ly = 1e0;
-    goal_i = 4;
-    goal_j = 2;
+    goal_i = 10;
+    goal_j = 5;
 
     dx=Lx/nx;
     dy=Ly/ny;
+
+    numOfNode=(nx+1)*(ny+1);
+    numOfElm=nx*ny;
 
     double v = 1e0;
 
     f = 1e0/v;
 
-    for(int i=0; i<1000; i++){
+    for(int i=0; i<10000; i++){
         H.emplace_back();
         H_tmp.emplace_back();
     }
-;
 
-    x.resize(ny+1, vector<vector<double>>(nx+1, vector<double>(2, 0)));
+
+    x.resize(numOfNode, vector<double>(2, 0));
     T.resize(ny+1, vector<double>(nx+1, 0));
+    element.resize(numOfElm);
+    T_1D.resize(numOfNode);
     lambda.resize(ny+1, vector<int>(nx+1, 0));
 
-    for(int i=0; i<nx+1; i++){
-        for(int j=0; j<ny+1; j++){
-            x.at(i).at(j).at(0) = j*dx;
-            x.at(i).at(j).at(1) = i*dx;
+    for(int ic=0;ic<numOfElm;ic++){
+        element[ic].node.resize(4);
+    }
+    
+    int tmp3 = 0;
+    for(int i=0; i<ny+1; i++){
+        for(int j=0; j<nx+1; j++){
+            x.at(tmp3).at(0)=j*dx;
+            x.at(tmp3).at(1)=i*dy;
+            tmp3++;
         }
     }
 
+    tmp3=0;
+    for(int i=0;i<ny;i++){
+        for(int j=0;j<nx;j++){
+        element[tmp3].node[0]=j   +i*(nx+1);
+        element[tmp3].node[1]=j+1 +i*(nx+1);
+        element[tmp3].node[2]=j+1 +(i+1)*(nx+1);
+        element[tmp3].node[3]=j   +(i+1)*(nx+1);
+        tmp3++;
+        }
+    }
+    
 }
 
 void FMM::FastMarchingMethod(){
    // cout << "1" << endl;
-   int loop = 0;
+    int loop = 0;
     InitGrid();
     bool is_empty_H = false;
     while(!is_empty_H){
@@ -45,37 +67,61 @@ void FMM::FastMarchingMethod(){
         DeleteHeap(H, size);
         int i = H.at(size).at(1);
         int j = H.at(size).at(2);
-         cout << "i = " << i << " j = " << j << endl;
+        H.erase(H.begin()+size);
+        //cout << "i = " << i << " j = " << j << endl;
         FixGrid(i, j, lambda, T, H);
-        if(size==0) is_empty_H = true;
+        cout << "size = " << size << endl;
+        if(size==0){
+            ofstream output_T("T.dat");
+            for(int i=0; i<ny+1; i++){
+                for(int j=0; j<nx+1; j++){
+                    output_T << i << " " << j << " " << T.at(i).at(j) << endl;
+                }
+            }
+            output_T.close();
+            is_empty_H = true;
+        }
         loop++;
         //if(loop == 3) exit(1);
     }
-    // cout << "3" << endl;
+    //cout << "3" << endl;
 }
 
 void FMM::UpdateGrid(int _i, int _j){
     //cout << "update _i = " << _i << endl;
     //cout << "update _j = " << _j  << endl;
     //cout << "2_1_1_1" << endl;
-    if(_i == nx && _j != ny){
+    if(_i == nx && _j != ny && _j != 0){
+        //cout << "in1" << endl;
         T_H = T.at(_i-1).at(_j);
         T_V = min(T.at(_i).at(_j-1), T.at(_i).at(_j+1));
-    }else if(_j == ny && _i != nx){
+    }else if(_j == ny && _i != nx && _i != 0){
+        //cout << "in2" << endl;
         T_H = min(T.at(_i-1).at(_j), T.at(_i+1).at(_j));
         T_V = T.at(_i).at(_j-1);
-    }else if(_i == 0 && _j != 0){
+    }else if(_i == 0 && _j != 0 && _j != nx){
+        //cout << "in3" << endl;
         T_H = T.at(_i+1).at(_j);
         T_V = min(T.at(_i).at(_j-1), T.at(_i).at(_j+1));   
-    }else if(_j == 0 && _i != 0){
+    }else if(_j == 0 && _i != 0 && _i != nx){
+        //cout << "in4" << endl;
         T_H = min(T.at(_i-1).at(_j), T.at(_i+1).at(_j));
         T_V = T.at(_i).at(_j+1);
     }else if(_i == nx && _j == ny){  
+       //cout << "in5" << endl;
         T_H = T.at(_i-1).at(_j);
         T_V = T.at(_i).at(_j-1);
     }else if(_i == 0 && _j == 0){
+        //cout << "in6" << endl;
         T_H = T.at(_i+1).at(_j);
         T_V = T.at(_i).at(_j+1);
+    }else if(_i == nx && _j == 0){
+        //cout << "in7" << endl;
+        T_H = T.at(_i-1).at(_j);
+        T_V = T.at(_i).at(_j+1);
+    }else if(_i == 0 && _j == ny){
+        T_H = T.at(_i+1).at(_j);
+        T_V = T.at(_i).at(_j-1);
     }else{
         T_H = min(T.at(_i-1).at(_j), T.at(_i+1).at(_j));
         T_V = min(T.at(_i).at(_j-1), T.at(_i).at(_j+1));   
@@ -106,15 +152,17 @@ void FMM::FixGrid(int _i, int _j, vector<vector<int>>& _lambda, vector<vector<do
                 step++;
                 continue;
             }
-             //cout << "i = " << i << " j = " << j << " step = " << step << endl;
+            //cout << "i = " << i << " j = " << j << " step = " << step << endl;
 
             if( (i != goal_i || j != goal_j) && _lambda.at(i).at(j) != fix){
                 //cout << size << endl;
-               // cout << "i = " << i << " j = " << j << " lambda = " << _lambda.at(i).at(j) << endl;
-                //cout << "2_1_1" << endl;
+                //cout << "i = " << i << " j = " << j << " lambda = " << _lambda.at(i).at(j) << endl;
+                //cout << "2_1_0" << endl;
                 UpdateGrid(i,j);
+                //cout << "2_1_1" << endl;
                 if(_lambda.at(i).at(j) == far){
-                    _lambda.at(i).at(j) == near;
+                    _lambda.at(i).at(j) = near;
+                   // cout << "i = " << i << " j = " << j << " lambda = " << _lambda.at(i).at(j) << endl;
                     //cout << "2_1_2" << endl;
                     //cout << "tmp = " << tmp << "  i = " << i << "  j = " << j <<  endl;
                     H.at(size).push_back(tmp);
@@ -123,15 +171,16 @@ void FMM::FixGrid(int _i, int _j, vector<vector<int>>& _lambda, vector<vector<do
                     //cout << "2_1_4" << endl;
                     H.at(size).push_back(j);
                     //cout << "2_1_5" << endl;
-                    //cout << "tmp = " << tmp <<  " H.at(size)のj = " << H.at(size).at(2) << endl;
+                    //cout << "size = " << size << "  tmp = " << tmp <<  "  H.at(size).at(0) = " << H.at(size).at(0) << "  H.at(size).at(1) = " <<  H.at(size).at(1)  << "  H.at(size).at(2) = " <<  H.at(size).at(2)  <<  endl;
                     tmp++;
                     size++;
                 }else{
                     //cout << "2_1_6" << endl;
                     UpHeap(H,i,j);
-                  // cout << "2_1_7" << endl;
+                    //cout << "2_1_7" << endl;
                 }
             }
+            
             step++;
         }
     }

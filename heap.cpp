@@ -48,6 +48,7 @@ void FMM::DeleteHeap(vector<vector<int>>& H, int &size) {
     //cout << "新しい根のi座標は = " << H.at(0).at(1) << " 根のj座標は = " << H.at(0).at(2) <<  endl;
     //cout << "消された葉のi座標は = " << H.at(size-1).at(1) <<  " 葉のj座標は = " << H.at(size-1).at(2) << endl;
     
+    
     //H_tmp.at(tmp2).push_back(H.at(size-1).at(0));
     //H_tmp.at(tmp2).push_back(H.at(size-1).at(1));
     //H_tmp.at(tmp2).push_back(H.at(size-1).at(2));
@@ -55,7 +56,7 @@ void FMM::DeleteHeap(vector<vector<int>>& H, int &size) {
     //tmp2++;
 
     size--;
-    cout << size << endl;
+    //cout << size << endl;
     parent = 0;
     
     while (1) {
@@ -107,16 +108,19 @@ void FMM::UpHeap(vector<vector<int>> &H, int _i, int _j){
             return row.at(1) == _i && row.at(2) == _j;
         }
     );
+    //cout << "2_1_6_1" << endl;
     if(it == end(H)) {
         cout << "not found";
     }
-    else {
-        cout << distance(begin(H), it);
-    }
+    else {  
+        //cout << "nearの位置は根の0番目から数えて" << distance(begin(H), it) << endl;
+        target = distance(begin(H), it);
+        }
 
     while (1) {    
-    
+
         parent = getParent(target);
+        //cout << "parent = " << parent << endl;
         if (H.at(parent).at(0) > H.at(target).at(0)) {
 
             swap(H.at(parent), H.at(target));
@@ -125,7 +129,8 @@ void FMM::UpHeap(vector<vector<int>> &H, int _i, int _j){
             if (target == 0) {
                 break;
             }
-        } else {
+                   //cout << "2_1_6_3" << endl;
+        }else {
             break;
         }
     }
